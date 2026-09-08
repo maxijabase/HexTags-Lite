@@ -89,11 +89,11 @@ void LoadConfig()
     g_kvTags = new KeyValues("HexTags");
 
     char sPath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, sPath, sizeof(sPath), "configs/moon/hextags_lite.cfg");
+    BuildPath(Path_SM, sPath, sizeof(sPath), "configs/hextags_lite.cfg");
 
     if (!g_kvTags.ImportFromFile(sPath))
     {
-        LogError("Could not load config: %s (Check if file and 'moon' folder exist)", sPath);
+        LogError("Could not load config: %s", sPath);
     }
 }
 

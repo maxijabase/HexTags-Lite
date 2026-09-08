@@ -40,11 +40,16 @@
 
 ## 📦 Installation
 
-1. Download the `hextags_lite.sp`, `hextags_lite.phrases.txt`, and `hextags_lite.cfg` files.
-2. Compile `hextags_lite.sp` and place the `.smx` in `addons/sourcemod/plugins/`.
-3. Place `hextags_lite.phrases.txt` in `addons/sourcemod/translations/`.
-4. Place `hextags_lite.cfg` in `addons/sourcemod/configs/moon/`.
-5. Load the plugin: `sm plugins load hextags_lite`.
+1. Download the latest `hextags_lite.zip` from [Releases](https://github.com/maxijabase/HexTags-Lite/releases).
+2. Extract it into your game directory so the files land under `addons/sourcemod/`.
+3. Load the plugin: `sm plugins load hextags_lite`.
+
+Manual layout (if compiling yourself):
+
+- `addons/sourcemod/plugins/hextags_lite.smx`
+- `addons/sourcemod/scripting/hextags_lite.sp`
+- `addons/sourcemod/translations/hextags_lite.phrases.txt`
+- `addons/sourcemod/configs/hextags_lite.cfg`
 
 ---
 
@@ -59,7 +64,7 @@
 
 ## ⚙️ Configuration Guide
 
-Located in `addons/sourcemod/configs/moon/hextags_lite.cfg`. The plugin uses a **Hierarchy Priority System**, meaning it will only apply the settings from the **highest priority** match found for a player.
+Located in `addons/sourcemod/configs/hextags_lite.cfg`. The plugin uses a **Hierarchy Priority System**, meaning it will only apply the settings from the **highest priority** match found for a player.
 
 ### Priority Hierarchy
 | Level | Selector | Example | Description |

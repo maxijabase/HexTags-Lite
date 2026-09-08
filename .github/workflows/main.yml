@@ -1,0 +1,52 @@
+name: Autobuild
+# modified from https://github.com/nosoop/NinjaBuild-SMPlugin/blob/master/contrib/github-workflow/build-on-version-tag-push.yml
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    name: Run action
+    runs-on: ubuntu-latest
+
+    # skip build on '[ci skip]'
+    if: "!contains(github.event.head_commit.message, '[ci skip]')"
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup SourcePawn Compiler
+        uses: rumblefrog/setup-sp@master
+        with:
+          version: "1.12.x"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile plugins
+        run: |
+          mkdir -p plugins
+          spcomp -i"./scripting/include/" scripting/hextags_lite.sp -o plugins/hextags_lite.smx
+          ls -la plugins/
+
+      - name: Zip packages
+        run: |
+          mkdir -p build/addons/sourcemod
+          cp -a plugins scripting configs translations build/addons/sourcemod/
+          rm -f build/addons/sourcemod/plugins/.gitkeep
+          (cd build && 7za a -r hextags_lite.zip addons/)
+          ls -la build/
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ./build/hextags_lite.zip
+          fail_on_unmatched_files: true
+          generate_release_notes: true
