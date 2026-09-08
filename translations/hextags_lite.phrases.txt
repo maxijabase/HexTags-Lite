@@ -2,17 +2,17 @@
 {
 	"Tags Reloaded"
 	{
-		"en"			"Tags reloaded successfully!"
-		"ro"			"Tag-urile au fost reincarcate cu succes!"
+		"en"			"[SM] Tags reloaded successfully!"
+		"ro"			"[SM] Tag-urile au fost reincarcate cu succes!"
 	}
 	"Tags Hidden"
 	{
-		"en"			"{darkred}[Moon]{default} Your tags are now {darkred}hidden{default}."
-		"ro"			"{darkred}[Moon]{default} Tag-urile tale sunt acum {darkred}ascunse{default}."
+		"en"			"[SM] Your tags are now hidden."
+		"ro"			"[SM] Tag-urile tale sunt acum ascunse."
 	}
 	"Tags Visible"
 	{
-		"en"			"{darkred}[Moon]{default} Your tags are now {green}visible{default}."
-		"ro"			"{darkred}[Moon]{default} Tag-urile tale sunt acum {green}vizibile{default}."
+		"en"			"[SM] Your tags are now visible."
+		"ro"			"[SM] Tag-urile tale sunt acum vizibile."
 	}
 }
