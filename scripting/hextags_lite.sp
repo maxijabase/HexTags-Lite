@@ -15,7 +15,7 @@ public Plugin myinfo =
     name        = "HexTags Lite",
     author      = "moongetsu",
     description = "HexTags but it's lite, optimized and more simple",
-    version     = "1.5",
+    version     = "1.6",
     url         = "https://github.com/moongetsu"
 };
 
@@ -139,10 +139,20 @@ void ResetClientData(int client)
     g_Tags[client].ScoreTag       = "";
     g_Tags[client].ChatTag        = "";
     g_Tags[client].ChatColor      = "";
-    g_Tags[client].NameColor      = "{teamcolor}";
+    g_Tags[client].NameColor      = "";
     g_Tags[client].ChatNamePrefix = "";
     g_Tags[client].ForceTag       = false;
     g_HideTags[client]            = false;
+}
+
+bool HasCustomNameColor(int client)
+{
+    return g_Tags[client].NameColor[0] != '\0' && !StrEqual(g_Tags[client].NameColor, "{teamcolor}");
+}
+
+bool HasChatOverride(int client)
+{
+    return g_Tags[client].ChatTag[0] != '\0' || g_Tags[client].ChatColor[0] != '\0' || HasCustomNameColor(client);
 }
 
 bool ClientInAnyGroup(AdminId admin, const char[] section)
@@ -180,7 +190,7 @@ void ApplyTags(int client)
     g_Tags[client].ScoreTag       = "";
     g_Tags[client].ChatTag        = "";
     g_Tags[client].ChatColor      = "";
-    g_Tags[client].NameColor      = "{teamcolor}";
+    g_Tags[client].NameColor      = "";
     g_Tags[client].ChatNamePrefix = "";
     g_Tags[client].ForceTag       = true;
 
@@ -234,7 +244,7 @@ void ApplyTags(int client)
             g_kvTags.GetString("ScoreTag", g_Tags[client].ScoreTag, 64);
             g_kvTags.GetString("ChatTag", g_Tags[client].ChatTag, 64);
             g_kvTags.GetString("ChatColor", g_Tags[client].ChatColor, 32);
-            g_kvTags.GetString("NameColor", g_Tags[client].NameColor, 32, "{teamcolor}");
+            g_kvTags.GetString("NameColor", g_Tags[client].NameColor, 32);
             g_Tags[client].ForceTag = (g_kvTags.GetNum("ForceTag", 1) == 1);
 
             if (currentPriority == 4) break;
@@ -242,7 +252,16 @@ void ApplyTags(int client)
     }
     while (g_kvTags.GotoNextKey());
 
-    Format(g_Tags[client].ChatNamePrefix, sizeof(ClientTags::ChatNamePrefix), "%s%s", g_Tags[client].ChatTag, g_Tags[client].NameColor);
+    if (g_Tags[client].ChatTag[0] != '\0' || HasCustomNameColor(client))
+    {
+        char nameColor[32];
+        if (g_Tags[client].NameColor[0] != '\0')
+            strcopy(nameColor, sizeof(nameColor), g_Tags[client].NameColor);
+        else
+            strcopy(nameColor, sizeof(nameColor), "{teamcolor}");
+
+        Format(g_Tags[client].ChatNamePrefix, sizeof(ClientTags::ChatNamePrefix), "{default}%s%s", g_Tags[client].ChatTag, nameColor);
+    }
 
     if (g_Tags[client].ScoreTag[0] != '\0')
         SetClanTag(client, g_Tags[client].ScoreTag);
@@ -265,15 +284,14 @@ public Action Timer_ForceTag(Handle timer)
 
 public Action CP_OnChatMessage(int &author, ArrayList recipients, char[] flagstring, char[] name, char[] message, bool &processcolors, bool &removecolors)
 {
-    if (g_HideTags[author]) return Plugin_Continue;
+    if (g_HideTags[author] || !HasChatOverride(author))
+        return Plugin_Continue;
 
-    bool changed = false;
     if (g_Tags[author].ChatNamePrefix[0] != '\0')
     {
         char sNewName[MAXLENGTH_NAME];
-        Format(sNewName, sizeof(sNewName), "%s%s", g_Tags[author].ChatNamePrefix, name);
+        Format(sNewName, sizeof(sNewName), "%s%s{default}", g_Tags[author].ChatNamePrefix, name);
         strcopy(name, MAXLENGTH_NAME, sNewName);
-        changed = true;
     }
 
     if (g_Tags[author].ChatColor[0] != '\0')
@@ -281,14 +299,8 @@ public Action CP_OnChatMessage(int &author, ArrayList recipients, char[] flagstr
         char sNewMessage[MAXLENGTH_MESSAGE];
         Format(sNewMessage, sizeof(sNewMessage), "%s%s", g_Tags[author].ChatColor, message);
         strcopy(message, MAXLENGTH_MESSAGE, sNewMessage);
-        changed = true;
     }
 
-    if (changed)
-    {
-        processcolors = true;
-        return Plugin_Changed;
-    }
-
-    return Plugin_Continue;
+    processcolors = true;
+    return Plugin_Changed;
 }

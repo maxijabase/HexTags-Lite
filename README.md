@@ -23,6 +23,7 @@
 	- **Admin Flag** (Priority 2)
 	- **Default** (Priority 1)
 - **High Performance:** Tags are cached upon joining (`ApplyTags`) and pre-formatted (`ChatNamePrefix`) to minimize overhead during chat messages.
+- **Native prefixes:** Players without a `ChatTag` / `ChatColor` keep the game's `(TEAM)` / `*DEAD*` prefixes. HexTags only rewrites chat when a real tag or color is applied.
 - **Scoreboard & Chat:** Supports both ClanTags (Scoreboard) and Chat Prefixes/Colors.
 - **Smart SteamID Handling:** Handles `STEAM_0` and `STEAM_1` interchangeably.
 - **Persistent Preferences:** Players can use `sm_hidetags` to toggle their own tags, with settings saved across sessions via client cookies.
@@ -33,7 +34,7 @@
 ## 🛠️ Requirements
 
 - **[SourceMod 1.11+](https://www.sourcemod.net/downloads.php)**
-- **[Chat-Processor](https://github.com/Drixevel/Chat-Processor)**
+- **[Chat-Processor (MultiColors)](https://github.com/dysphie/chat-processor-multicolors)** — required at runtime. Pair this fork with HexTags Lite; the original Drixevel build uses ColorVariables and will not expand `{orange}` / `{default}` tags.
 - **[MultiColors](https://github.com/Bara/Multi-Colors)** (Include for compilation)
 
 ---
@@ -82,8 +83,10 @@ Located in `addons/sourcemod/configs/hextags_lite.cfg`. The plugin uses a **Hier
 | `ScoreTag` | The text shown on the TAB scoreboard (ClanTag). *CS:S/CS:GO only. Ignored on other games.* |
 | `ChatTag` | The prefix shown before the player's name in chat. *Supports colors.* |
 | `ChatColor` | The color of the message text sent by the player. |
-| `NameColor` | The color of the player's name in chat. (Default: `{teamcolor}`) |
+| `NameColor` | Color of the player's name. Omit or leave empty to keep the game default. `{teamcolor}` is treated as native unless the player also has a `ChatTag`. |
 | `ForceTag` | `1` to force the ScoreTag every 5s, `0` to set it only once. |
+
+On TF2, skip a catch-all `"default"` section with `ChatTag` / `ChatColor`. That forces Chat-Processor to rebuild every SayText2 and hides native `(TEAM)` / `*DEAD*` prefixes. End `ChatTag` with `{default}` so the name does not inherit the tag color.
 
 ### 🎨 Available Colors
 You can use the following color tags in your configuration:
@@ -129,14 +132,14 @@ You can use the following color tags in your configuration:
         "NameColor" "{orchid}"
     }
 
-    // Example: Default (Lowest Priority) - Applies to everyone not matched above
-    "default"
-    {
-        "ScoreTag"  ""
-        "ChatTag"   "{teamcolor}[PLAYER] {default}"
-        "ChatColor" "{grey}"
-        "NameColor" "{teamcolor}"
-    }
+    // Optional default: do not enable on TF2 if you want native (TEAM) / *DEAD*.
+    // "default"
+    // {
+    //     "ScoreTag"  ""
+    //     "ChatTag"   "{teamcolor}[PLAYER] {default}"
+    //     "ChatColor" "{grey}"
+    //     "NameColor" "{teamcolor}"
+    // }
 }
 ```
 
@@ -144,6 +147,6 @@ You can use the following color tags in your configuration:
 
 <p align="center">
   <img src="https://badgen.net/badge/Optimized%20for/CS:GO/green?icon=sourceengine" alt="Engine Optimized" />
-  <img src="https://badgen.net/badge/Version/v1.5/blue" alt="Version" />
+  <img src="https://badgen.net/badge/Version/v1.6/blue" alt="Version" />
   <img src="https://badgen.net/badge/Language/SourcePawn/orange" alt="SourcePawn" />
 </p>
