@@ -4,7 +4,7 @@
   HexTags Lite
 </h1>
 <p align="center">
-  <b>Ultra-optimized and minimalist <span style="color:#F5E260;">Tags & Colors</span> manager for CS:GO servers.</b><br>
+  <b>Ultra-optimized and minimalist <span style="color:#F5E260;">Tags & Colors</span> manager for SourceMod servers.</b><br>
 </p>
 
 <hr>
@@ -70,7 +70,7 @@ Located in `addons/sourcemod/configs/hextags_lite.cfg`. The plugin uses a **Hier
 | Level | Selector | Example | Description |
 |---|---|---|---|
 | **4** | **SteamID** | `STEAM_0:1:12345` | Hits specific players. (Highest) |
-| **3** | **Admin Group** | `@Owner` | Matches the player's Group Name. |
+| **3** | **Admin Group** | `@Owner` or `@Admin, @Root` | Matches any listed group name (comma-separated, OR). |
 | **2** | **Admin Flag** | `z` | Matches a single Admin Flag. |
 | **1** | **Default** | `default` | Applies if no other match is found. |
 
@@ -79,7 +79,7 @@ Located in `addons/sourcemod/configs/hextags_lite.cfg`. The plugin uses a **Hier
 ### Available Settings
 | Key | Description |
 |---|---|
-| `ScoreTag` | The text shown on the TAB scoreboard (ClanTag). *No color support.* |
+| `ScoreTag` | The text shown on the TAB scoreboard (ClanTag). *CS:S/CS:GO only. Ignored on other games.* |
 | `ChatTag` | The prefix shown before the player's name in chat. *Supports colors.* |
 | `ChatColor` | The color of the message text sent by the player. |
 | `NameColor` | The color of the player's name in chat. (Default: `{teamcolor}`) |
@@ -109,8 +109,9 @@ You can use the following color tags in your configuration:
     }
 
 	  // Example: Admin Group Match (Priority 3)
-	  // Must match the Group Name defined in admin_groups.cfg
-    "@Admin"
+	  // Must match a Group Name defined in admin_groups.cfg
+	  // Multiple groups in one section: comma-separated, OR match
+    "@Admin, @Root"
     {
         "ScoreTag"  "[ADMIN]"
         "ChatTag"   "{darkblue}[ADMIN] {default}"
@@ -143,6 +144,6 @@ You can use the following color tags in your configuration:
 
 <p align="center">
   <img src="https://badgen.net/badge/Optimized%20for/CS:GO/green?icon=sourceengine" alt="Engine Optimized" />
-  <img src="https://badgen.net/badge/Version/v1.4/blue" alt="Version" />
+  <img src="https://badgen.net/badge/Version/v1.5/blue" alt="Version" />
   <img src="https://badgen.net/badge/Language/SourcePawn/orange" alt="SourcePawn" />
 </p>

@@ -1,8 +1,11 @@
 #include <sourcemod>
-#include <cstrike>
 #include <chat-processor>
 #include <clientprefs>
 #include <multicolors>
+
+#undef REQUIRE_EXTENSIONS
+#include <cstrike>
+#define REQUIRE_EXTENSIONS
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -12,7 +15,7 @@ public Plugin myinfo =
     name        = "HexTags Lite",
     author      = "moongetsu",
     description = "HexTags but it's lite, optimized and more simple",
-    version     = "1.4",
+    version     = "1.5",
     url         = "https://github.com/moongetsu"
 };
 
@@ -30,6 +33,14 @@ ClientTags g_Tags[MAXPLAYERS + 1];
 KeyValues  g_kvTags;
 Cookie     g_hCookieHide;
 bool       g_HideTags[MAXPLAYERS + 1];
+bool       g_bClanTags;
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+    MarkNativeAsOptional("CS_SetClientClanTag");
+    MarkNativeAsOptional("CS_GetClientClanTag");
+    return APLRes_Success;
+}
 
 public void OnPluginStart()
 {
@@ -39,6 +50,7 @@ public void OnPluginStart()
     RegConsoleCmd("sm_hidetags", Cmd_HideTags, "Toggle your tag visibility.");
 
     g_hCookieHide = new Cookie("hextags_hidetags", "Hide or show your tags", CookieAccess_Private);
+    g_bClanTags   = (GetFeatureStatus(FeatureType_Native, "CS_SetClientClanTag") == FeatureStatus_Available);
 
     LoadConfig();
 
@@ -51,7 +63,14 @@ public void OnPluginStart()
         }
     }
 
-    CreateTimer(5.0, Timer_ForceTag, _, TIMER_REPEAT);
+    if (g_bClanTags)
+        CreateTimer(5.0, Timer_ForceTag, _, TIMER_REPEAT);
+}
+
+void SetClanTag(int client, const char[] tag)
+{
+    if (g_bClanTags)
+        CS_SetClientClanTag(client, tag);
 }
 
 public void OnMapStart()
@@ -126,6 +145,34 @@ void ResetClientData(int client)
     g_HideTags[client]            = false;
 }
 
+bool ClientInAnyGroup(AdminId admin, const char[] section)
+{
+    if (admin == INVALID_ADMIN_ID)
+        return false;
+
+    char groups[8][32];
+    int  n = ExplodeString(section, ",", groups, sizeof(groups), sizeof(groups[]));
+
+    char sAdminGroup[64];
+    int  count = admin.GroupCount;
+
+    for (int p = 0; p < n; p++)
+    {
+        TrimString(groups[p]);
+        if (groups[p][0] != '@' || groups[p][1] == '\0')
+            continue;
+
+        for (int i = 0; i < count; i++)
+        {
+            admin.GetGroup(i, sAdminGroup, sizeof(sAdminGroup));
+            if (StrEqual(sAdminGroup, groups[p][1], false))
+                return true;
+        }
+    }
+
+    return false;
+}
+
 void ApplyTags(int client)
 {
     if (!IsClientInGame(client) || IsFakeClient(client) || !g_kvTags) return;
@@ -139,14 +186,14 @@ void ApplyTags(int client)
 
     if (g_HideTags[client])
     {
-        CS_SetClientClanTag(client, "");
+        SetClanTag(client, "");
         return;
     }
 
     g_kvTags.Rewind();
     if (!g_kvTags.GotoFirstSubKey()) return;
 
-    char sSection[64], sSteam[32], sSteamAlt[32];
+    char sSection[128], sSteam[32], sSteamAlt[32];
     GetClientAuthId(client, AuthId_Steam2, sSteam, sizeof(sSteam));
 
     strcopy(sSteamAlt, sizeof(sSteamAlt), sSteam);
@@ -169,20 +216,8 @@ void ApplyTags(int client)
             priority = 4;
         }
         else if (sSection[0] == '@') {
-            if (admin != INVALID_ADMIN_ID)
-            {
-                char sAdminGroup[64];
-                int  count = admin.GroupCount;
-                for (int i = 0; i < count; i++)
-                {
-                    admin.GetGroup(i, sAdminGroup, sizeof(sAdminGroup));
-                    if (StrEqual(sAdminGroup, sSection[1], false))
-                    {
-                        priority = 3;
-                        break;
-                    }
-                }
-            }
+            if (ClientInAnyGroup(admin, sSection))
+                priority = 3;
         }
         else if (strlen(sSection) == 1) {
             AdminFlag flag;
@@ -210,9 +245,7 @@ void ApplyTags(int client)
     Format(g_Tags[client].ChatNamePrefix, sizeof(ClientTags::ChatNamePrefix), "%s%s", g_Tags[client].ChatTag, g_Tags[client].NameColor);
 
     if (g_Tags[client].ScoreTag[0] != '\0')
-    {
-        CS_SetClientClanTag(client, g_Tags[client].ScoreTag);
-    }
+        SetClanTag(client, g_Tags[client].ScoreTag);
 }
 
 public Action Timer_ForceTag(Handle timer)
@@ -224,9 +257,7 @@ public Action Timer_ForceTag(Handle timer)
             char sCurrentTag[64];
             CS_GetClientClanTag(i, sCurrentTag, sizeof(sCurrentTag));
             if (!StrEqual(sCurrentTag, g_Tags[i].ScoreTag))
-            {
-                CS_SetClientClanTag(i, g_Tags[i].ScoreTag);
-            }
+                SetClanTag(i, g_Tags[i].ScoreTag);
         }
     }
     return Plugin_Continue;
